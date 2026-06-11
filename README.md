@@ -1,4 +1,4 @@
-# Whiteboardmour
+# DrawSpace
 
 A real-time collaborative whiteboard app where users can draw together in shared rooms.
 
