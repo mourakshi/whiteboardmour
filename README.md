@@ -64,3 +64,14 @@ Open `http://localhost:5173/rooms.html` to create or join a room, then draw on t
 - **Backend**: Render
 
 Set the environment variable in Vercel:
+VITE_BACKEND_URL=https://your-backend.onrender.com
+
+## Live Demo
+
+[whiteboardmour.vercel.app](https://whiteboardmour-5pz1.vercel.app)
+
+## Repo
+
+[github.com/mourakshi/whiteboardmour](https://github.com/mourakshi/whiteboardmour)
+
+
