@@ -89,66 +89,67 @@ class Whiteboard extends EventTarget {
     });
   }
 
-  private floodFill(startX: number, startY: number, fillColor: string) {
-    // draw current state onto offscreen first
-    this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
-    this.pencil.draw(this.offCtx);
-    this.rectangle.draw(this.offCtx);
+private floodFill(startX: number, startY: number, fillColor: string) {
+  this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
+  
+  // fill with white background first so transparent = white
+  this.offCtx.fillStyle = "#ffffff";
+  this.offCtx.fillRect(0, 0, this.offscreen.width, this.offscreen.height);
+  
+  this.pencil.draw(this.offCtx);
+  this.rectangle.draw(this.offCtx);
 
-    const w = this.offscreen.width;
-    const h = this.offscreen.height;
-    const imageData = this.offCtx.getImageData(0, 0, w, h);
-    const data = imageData.data;
+  const w = this.offscreen.width;
+  const h = this.offscreen.height;
+  const imageData = this.offCtx.getImageData(0, 0, w, h);
+  const data = imageData.data;
 
-    const idx = (x: number, y: number) => (y * w + x) * 4;
-    const si = idx(startX, startY);
-    const target = [data[si], data[si + 1], data[si + 2], data[si + 3]];
+  const idx = (x: number, y: number) => (y * w + x) * 4;
+  const si = idx(startX, startY);
+  const target = [data[si], data[si + 1], data[si + 2], data[si + 3]];
 
-    const fill = parseInt(fillColor.slice(1), 16);
-    const fr = (fill >> 16) & 255;
-    const fg = (fill >> 8) & 255;
-    const fb = fill & 255;
+  const fill = parseInt(fillColor.slice(1), 16);
+  const fr = (fill >> 16) & 255;
+  const fg = (fill >> 8) & 255;
+  const fb = fill & 255;
 
-    // don't fill if already that color
-    if (target[0] === fr && target[1] === fg && target[2] === fb) return;
+  if (target[0] === fr && target[1] === fg && target[2] === fb) return;
 
-    const matches = (x: number, y: number) => {
-      const i = idx(x, y);
-      return (
-        Math.abs(data[i] - target[0]) < 30 &&
-        Math.abs(data[i + 1] - target[1]) < 30 &&
-        Math.abs(data[i + 2] - target[2]) < 30 &&
-        Math.abs(data[i + 3] - target[3]) < 30
-      );
-    };
+  const matches = (x: number, y: number) => {
+    const i = idx(x, y);
+    return (
+      Math.abs(data[i] - target[0]) < 30 &&
+      Math.abs(data[i + 1] - target[1]) < 30 &&
+      Math.abs(data[i + 2] - target[2]) < 30 &&
+      Math.abs(data[i + 3] - target[3]) < 30
+    );
+  };
 
-    const stack = [[startX, startY]];
-    const visited = new Uint8Array(w * h);
+  const stack = [[startX, startY]];
+  const visited = new Uint8Array(w * h);
 
-    while (stack.length) {
-      const point = stack.pop()!;
-      const x = point[0];
-      const y = point[1];
-      if (x < 0 || x >= w || y < 0 || y >= h) continue;
-      if (visited[y * w + x]) continue;
-      if (!matches(x, y)) continue;
+  while (stack.length) {
+    const point = stack.pop()!;
+    const x = point[0];
+    const y = point[1];
+    if (x < 0 || x >= w || y < 0 || y >= h) continue;
+    if (visited[y * w + x]) continue;
+    if (!matches(x, y)) continue;
 
-      visited[y * w + x] = 1;
-      const i = idx(x, y);
-      data[i] = fr;
-      data[i + 1] = fg;
-      data[i + 2] = fb;
-      data[i + 3] = 255;
+    visited[y * w + x] = 1;
+    const i = idx(x, y);
+    data[i] = fr;
+    data[i + 1] = fg;
+    data[i + 2] = fb;
+    data[i + 3] = 255;
 
-      stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
-    }
-
-    this.offCtx.putImageData(imageData, 0, 0);
-
-    // store snapshot so draw() can restore it
-    this.pencil.fillSnapshot = this.offCtx.getImageData(0, 0, w, h);
-    this.pencil.hasFill = true;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
   }
+
+  this.offCtx.putImageData(imageData, 0, 0);
+  this.pencil.fillSnapshot = this.offCtx.getImageData(0, 0, w, h);
+  this.pencil.hasFill = true;
+}
 
   setTool(tool: Tool) {
     this.activeTool = tool;
@@ -174,14 +175,17 @@ class Whiteboard extends EventTarget {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
-    if (this.pencil.hasFill && this.pencil.fillSnapshot) {
-      this.offCtx.putImageData(this.pencil.fillSnapshot, 0, 0);
-    }
-    this.pencil.draw(this.offCtx);
-    this.rectangle.draw(this.offCtx);
-    ctx.drawImage(this.offscreen, 0, 0);
+  this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
+  this.offCtx.fillStyle = "#ffffff";
+  this.offCtx.fillRect(0, 0, this.offscreen.width, this.offscreen.height);
+  
+  if (this.pencil.hasFill && this.pencil.fillSnapshot) {
+    this.offCtx.putImageData(this.pencil.fillSnapshot, 0, 0);
   }
+  this.pencil.draw(this.offCtx);
+  this.rectangle.draw(this.offCtx);
+  ctx.drawImage(this.offscreen, 0, 0);
+}
 }
 
 export default Whiteboard;
