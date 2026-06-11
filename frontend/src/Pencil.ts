@@ -18,6 +18,8 @@ class Pencil {
   paths: Stroke[] = [];
   texts: TextItem[] = [];
   pencilThickness = 2;
+  hasFill = false;
+  fillSnapshot: ImageData | null = null;
 
   updateMousePos(pos: Pos) {
     this.mousePos = pos;

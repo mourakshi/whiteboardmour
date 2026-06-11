@@ -22,11 +22,13 @@ class Whiteboard extends EventTarget {
   rectangle = new Rectangle();
   mouseDown = false;
   color = "#000000";
+  private canvas: HTMLCanvasElement;
   private offscreen: HTMLCanvasElement;
   private offCtx: CanvasRenderingContext2D;
 
   constructor(canvas: HTMLCanvasElement) {
     super();
+    this.canvas = canvas;
     this.offscreen = document.createElement("canvas");
     this.offscreen.width = canvas.width;
     this.offscreen.height = canvas.height;
@@ -88,19 +90,27 @@ class Whiteboard extends EventTarget {
   }
 
   private floodFill(startX: number, startY: number, fillColor: string) {
-    const ctx = this.offCtx;
+    // draw current state onto offscreen first
+    this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
+    this.pencil.draw(this.offCtx);
+    this.rectangle.draw(this.offCtx);
+
     const w = this.offscreen.width;
     const h = this.offscreen.height;
-    const imageData = ctx.getImageData(0, 0, w, h);
+    const imageData = this.offCtx.getImageData(0, 0, w, h);
     const data = imageData.data;
 
     const idx = (x: number, y: number) => (y * w + x) * 4;
-    const target = data.slice(idx(startX, startY), idx(startX, startY) + 4);
+    const si = idx(startX, startY);
+    const target = [data[si], data[si + 1], data[si + 2], data[si + 3]];
 
     const fill = parseInt(fillColor.slice(1), 16);
     const fr = (fill >> 16) & 255;
     const fg = (fill >> 8) & 255;
     const fb = fill & 255;
+
+    // don't fill if already that color
+    if (target[0] === fr && target[1] === fg && target[2] === fb) return;
 
     const matches = (x: number, y: number) => {
       const i = idx(x, y);
@@ -116,7 +126,9 @@ class Whiteboard extends EventTarget {
     const visited = new Uint8Array(w * h);
 
     while (stack.length) {
-      const [x, y] = stack.pop()!;
+      const point = stack.pop()!;
+      const x = point[0];
+      const y = point[1];
       if (x < 0 || x >= w || y < 0 || y >= h) continue;
       if (visited[y * w + x]) continue;
       if (!matches(x, y)) continue;
@@ -131,14 +143,11 @@ class Whiteboard extends EventTarget {
       stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
     }
 
-    ctx.putImageData(imageData, 0, 0);
-    this.pencil.paths.push({
-      points: [],
-      color: "__fill__",
-      thickness: 1,
-      isEraser: false,
-      fillSnapshot: ctx.getImageData(0, 0, w, h),
-    } as any);
+    this.offCtx.putImageData(imageData, 0, 0);
+
+    // store snapshot so draw() can restore it
+    this.pencil.fillSnapshot = this.offCtx.getImageData(0, 0, w, h);
+    this.pencil.hasFill = true;
   }
 
   setTool(tool: Tool) {
@@ -152,6 +161,8 @@ class Whiteboard extends EventTarget {
   clear() {
     this.pencil.paths = [];
     this.pencil.texts = [];
+    this.pencil.hasFill = false;
+    this.pencil.fillSnapshot = null;
     this.rectangle.rects = [];
     this.rectangle.currentRect = undefined;
     this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
@@ -164,6 +175,9 @@ class Whiteboard extends EventTarget {
 
   draw(ctx: CanvasRenderingContext2D) {
     this.offCtx.clearRect(0, 0, this.offscreen.width, this.offscreen.height);
+    if (this.pencil.hasFill && this.pencil.fillSnapshot) {
+      this.offCtx.putImageData(this.pencil.fillSnapshot, 0, 0);
+    }
     this.pencil.draw(this.offCtx);
     this.rectangle.draw(this.offCtx);
     ctx.drawImage(this.offscreen, 0, 0);
