@@ -1,6 +1,10 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000");
+const socket = io(
+  import.meta.env.PROD
+    ? "https://whiteboardmour-backend.onrender.com"
+    : "http://localhost:3000"
+);
 const createBtn = document.getElementById("create_btn");
 const roomNameInput = document.getElementById("name") as HTMLInputElement;
 const roomsDiv = document.getElementById("rooms");

@@ -6,7 +6,7 @@ export interface Pos {
   y: number;
 }
 
-export const enum Tool {
+export enum Tool {
   PENCIL,
   BRUSH,
   RECTANGLE,
@@ -25,7 +25,7 @@ class Whiteboard extends EventTarget {
   private offscreen: HTMLCanvasElement;
   private offCtx: CanvasRenderingContext2D;
 
-  constructor(private canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
     super();
     this.offscreen = document.createElement("canvas");
     this.offscreen.width = canvas.width;

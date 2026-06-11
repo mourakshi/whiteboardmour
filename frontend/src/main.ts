@@ -9,7 +9,11 @@ canvas.height = CANVAS_HEIGHT;
 
 const ctx = canvas.getContext("2d")!;
 const whiteboard = new Whiteboard(canvas);
-const socket = io("http://localhost:3000");
+const socket = io(
+  import.meta.env.PROD
+    ? "https://whiteboardmour-backend.onrender.com"
+    : "http://localhost:3000"
+);
 
 let currentRoomId: string | null = null;
 
