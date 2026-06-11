@@ -11,7 +11,7 @@ const ctx = canvas.getContext("2d")!;
 const whiteboard = new Whiteboard(canvas);
 const socket = io(
   import.meta.env.PROD
-    ? "https://whiteboardmour-backend.onrender.com"
+    ? "https://whiteboardmour.onrender.com"
     : "http://localhost:3000"
 );
 

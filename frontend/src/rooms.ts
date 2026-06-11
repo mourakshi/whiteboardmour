@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 
 const socket = io(
   import.meta.env.PROD
-    ? "https://whiteboardmour-backend.onrender.com"
+    ? "https://whiteboardmour.onrender.com"
     : "http://localhost:3000"
 );
 const createBtn = document.getElementById("create_btn");
