@@ -68,7 +68,7 @@ VITE_BACKEND_URL=https://your-backend.onrender.com
 
 ## Live Demo
 
-[[whiteboardmour.vercel.app](https://whiteboardmour-5pz1.vercel.app)](https://whiteboardmour-wp8p.vercel.app/)
+[(https://whiteboardmour-5pz1.vercel.app)](https://whiteboardmour-wp8p.vercel.app/)
 
 ## Repo
 
